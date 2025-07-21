@@ -205,6 +205,9 @@ def add_word(p: remote, n: int):
 
 
 with remote("kek.cx", 6969) as p:
+    p.recvuntil(b"teehee")
+    p.recvline()
+
     for _ in range(577):
         mul(0xffffffff)
 
